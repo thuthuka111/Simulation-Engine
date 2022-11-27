@@ -4,9 +4,6 @@
 
 #include "OpenGL.h"
 
-#include "GL/glew.h"
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -47,15 +44,39 @@ int OpenGL::start() {
         return -1;
     }
 
-    //GLuint shaderProgram = createAndLinkProgram();
+    // making the vertex buffer, which stores data and bind it to the GL_ARRAY_BUFFER
+    float vertices[] = {
+            -0.5f, -0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f,
+            0.0f,  0.5f, 0.0f
+    };
+    GLuint VBO, VAO; // Vertex buffer object
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to the buffer we generated to this target
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    GLuint shaderProgram = linkShaders();
+    glUseProgram(shaderProgram); // Todo Delete the program and the shaders after execution
+
+    glViewport(0, 0, width, height);
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
+
+        glClearColor(0.9f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         //gets rid of previously rendered pixels
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //Transforms -1 to 1 coords to the passed in width and height
-        glViewport(0, 0, width, height);
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -86,7 +107,7 @@ void handleKeyInput(GLFWwindow *window, int key, int status, int action, int mod
     }
 }
 
-GLuint createAndLinkProgram() {
+GLuint OpenGL::linkShaders() { //Create and link Program
     GLuint vertexShader = createAndCompileShader("../shaders/shader.vert", GL_VERTEX_SHADER);
     GLuint fragmentShader = createAndCompileShader("../shaders/shader.frag", GL_FRAGMENT_SHADER);
 
