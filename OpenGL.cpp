@@ -10,13 +10,26 @@
 #include <fstream>
 
 void setWindowHints();
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
 void handleKeyInput(GLFWwindow *window, int key, int status, int action, int mods);
+
 GLuint createAndLinkProgram();
+
 GLuint createAndCompileShader(const std::string &fileLocation, GLuint shaderType);
+
 std::string readFileToString(const std::string &fileLocation);
 
 int OpenGL::start() {
+    //Make Vertices Before Window
+    for (GameObject *gameObject: this->gameObjects) {
+        std::vector<float> objectVerts = gameObject->getVertices();
+        for (auto vert: objectVerts) {
+            this->vertices->push_back(vert);
+        }
+    }
+
     glfwInit();
     setWindowHints();
 
@@ -44,12 +57,7 @@ int OpenGL::start() {
         return -1;
     }
 
-    // making the vertex buffer, which stores data and bind it to the GL_ARRAY_BUFFER
-    float vertices[] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.0f,  0.5f, 0.0f
-    };
+    // making the vertex buffer, which stores data and bind it to the target
     GLuint VBO, VAO; // Vertex buffer object
 
     glGenVertexArrays(1, &VAO);
@@ -57,9 +65,9 @@ int OpenGL::start() {
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to the buffer we generated to this target
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, this->vertices->size() * sizeof(float), this->vertices->data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
 
     GLuint shaderProgram = linkShaders();
@@ -76,7 +84,7 @@ int OpenGL::start() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, this->vertices->size() / 3);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -128,7 +136,20 @@ GLuint OpenGL::linkShaders() { //Create and link Program
     return program;
 }
 
-GLuint createAndCompileShader(const std::string &fileLocation, GLuint shaderType) {// creates and compiles fragment and vertex shader
+void OpenGL::addGameObject(GameObject *gameObject) {
+    this->gameObjects.push_back(gameObject);
+}
+
+OpenGL::~OpenGL() {
+    delete vertices;
+}
+
+OpenGL::OpenGL() {
+    this->vertices = new std::vector<float>();
+}
+
+GLuint createAndCompileShader(const std::string &fileLocation,
+                              GLuint shaderType) {// creates and compiles fragment and vertex shader
     GLuint shader = glCreateShader(shaderType);
     const std::string shaderSource = readFileToString(fileLocation);
     const char *cShader = shaderSource.c_str();
