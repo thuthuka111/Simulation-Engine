@@ -1,6 +1,8 @@
 //
 // Created by Thuthuka on 2022/11/27.
 //
+#ifndef FAKEBASKETBALL_ENVIRONMENTBOX_H
+#define FAKEBASKETBALL_ENVIRONMENTBOX_H
 
 #include "GameObject.h"
 
@@ -17,3 +19,5 @@ public:
 
     virtual std::vector<float> getVertices();
 };
+
+#endif

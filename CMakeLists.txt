@@ -7,6 +7,7 @@ file(GLOB_RECURSE SOURCE_FILES
         main.cpp
         OpenGL.cpp
         GameObjects/*.cpp
+        Collideable/*.cpp
 )
 
 add_subdirectory(glew)
