@@ -4,9 +4,9 @@
 #ifndef FAKEBASKETBALL_ENVIRONMENTBOX_H
 #define FAKEBASKETBALL_ENVIRONMENTBOX_H
 
-#include "GameObject.h"
+#include "RigidBody.h"
 
-class EnvironmentBox : public GameObject {
+class EnvironmentBox : public RigidBody {
 private:
     float width, height;
 

@@ -4,7 +4,7 @@
 
 #include "Circle.h"
 
-Circle::Circle(GameObject *gameObject, float radius): Collideable(gameObject), radius(radius) {
+Circle::Circle(RigidBody *gameObject, float radius): Collideable(gameObject), radius(radius) {
     collisionType = CollisionType::CIRCLE;
 }
 

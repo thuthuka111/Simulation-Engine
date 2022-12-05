@@ -23,7 +23,7 @@ std::string readFileToString(const std::string &fileLocation);
 
 int OpenGL::start() {
     //Make Vertices Before Window
-    for (GameObject *gameObject: this->gameObjects) {
+    for (RigidBody *gameObject: this->gameObjects) {
         std::vector<float> objectVerts = gameObject->getVertices();
         for (auto vert: objectVerts) {
             this->vertices->push_back(vert);
@@ -136,8 +136,8 @@ GLuint OpenGL::linkShaders() { //Create and link Program
     return program;
 }
 
-void OpenGL::addGameObject(GameObject *gameObject) {
-    this->gameObjects.push_back(gameObject);
+void OpenGL::addRigidBody(RigidBody* rigidBody) {
+    this->gameObjects.push_back(rigidBody);
 }
 
 OpenGL::~OpenGL() {

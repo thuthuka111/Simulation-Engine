@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 file(GLOB_RECURSE SOURCE_FILES
         main.cpp
         OpenGL.cpp
-        GameObjects/*.cpp
+        RigidBodies/*.cpp
         Collideable/*.cpp
 )
 

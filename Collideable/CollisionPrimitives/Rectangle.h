@@ -12,7 +12,7 @@ private:
     unsigned int width;
     unsigned int height;
 public:
-    Rectangle(GameObject* gameObject, unsigned int width, unsigned int height);
+    Rectangle(RigidBody* gameObject, unsigned int width, unsigned int height);
     bool isIntersecting(Rectangle* object2);
 };
 

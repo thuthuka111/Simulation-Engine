@@ -1,0 +1,11 @@
+//
+// Created by Thuthuka on 2022/12/05.
+//
+
+#ifndef FAKEBASKETBALL_CONCRETERIGIDBODIES_H
+#define FAKEBASKETBALL_CONCRETERIGIDBODIES_H
+
+#include "Ball.h"
+#include "EnvironmentBox.h"
+
+#endif //FAKEBASKETBALL_CONCRETERIGIDBODIES_H

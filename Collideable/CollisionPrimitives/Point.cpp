@@ -4,7 +4,7 @@
 
 #include "Point.h"
 
-Point::Point(GameObject *gameObject1) : Collideable(gameObject1) {
+Point::Point(RigidBody *gameObject1) : Collideable(gameObject1) {
     collisionType = CollisionType::POINT;
 }
 

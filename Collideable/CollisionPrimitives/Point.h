@@ -9,7 +9,7 @@
 
 class Point: public Collideable {
 public:
-    Point(GameObject* gameObject1);
+    Point(RigidBody* gameObject1);
     bool isIntersecting(Rectangle* object2);
 };
 

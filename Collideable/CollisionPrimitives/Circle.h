@@ -11,7 +11,7 @@ class Circle: public Collideable {
 private:
     float radius;
 public:
-    Circle(GameObject* gameObject, float radius);
+    Circle(RigidBody* gameObject, float radius);
     bool isIntersecting(Rectangle* object2);
 };
 
