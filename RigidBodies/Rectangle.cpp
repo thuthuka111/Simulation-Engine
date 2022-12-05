@@ -2,14 +2,14 @@
 // Created by Thuthuka on 2022/11/27.
 //
 
-#include "EnvironmentBox.h"
+#include "Rectangle.h"
 #include <map>
 
-EnvironmentBox::EnvironmentBox(float width, float height) : width(width), height(height) {
-
+Rectangle::Rectangle(float width, float height) : width(width), height(height) {
+    this->collider = new RectangleCollider(this, width, height);
 }
 
-std::vector<float> EnvironmentBox::getVertices() {
+std::vector<float> Rectangle::getVertices() {
     std::vector<std::pair<float, float>> vectorSet = getUnusableVertices();
     std::vector<unsigned int> indexSet = getIndices();
 
@@ -23,7 +23,7 @@ std::vector<float> EnvironmentBox::getVertices() {
     return vertices;
 }
 
-std::vector<std::pair<float, float>> EnvironmentBox::getUnusableVertices() {
+std::vector<std::pair<float, float>> Rectangle::getUnusableVertices() {
     std::vector<std::pair<float, float>> vertices;
 
     vertices.emplace_back(-0.5f * width, -0.5f * height);
@@ -34,7 +34,7 @@ std::vector<std::pair<float, float>> EnvironmentBox::getUnusableVertices() {
     return vertices;
 }
 
-std::vector<unsigned int> EnvironmentBox::getIndices() {
+std::vector<unsigned int> Rectangle::getIndices() {
     std::vector<unsigned int> indices;
 
     indices.push_back(0);

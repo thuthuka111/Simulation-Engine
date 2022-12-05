@@ -8,11 +8,15 @@
 #include "RigidBody.h"
 #include <vector>
 
+#include "../Collideable/CollisionSandbox.h"
+
 class PhysicsSandbox {
 private:
+    CollisionSandbox* collisionSandbox;
     std::vector<RigidBody*> rigidBodies;
     float lastTime = 0.0f;
 public:
+    PhysicsSandbox();
     void addRigidBody(RigidBody* rigidBody);
     void progressPhysics(float newTime);
 };

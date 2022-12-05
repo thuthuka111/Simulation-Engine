@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void setWindowHints();
 
@@ -23,13 +25,17 @@ std::string readFileToString(const std::string &fileLocation);
 
 int OpenGL::start() {
     //Make Vertices Before Window
-    for (RigidBody *gameObject: this->gameObjects) {
-        std::vector<float> objectVerts = gameObject->getVertices();
-        for (auto vert: objectVerts) {
-            this->vertices->push_back(vert);
+    {
+        unsigned int numTrianglesBefore = 0;
+        for (RigidBody *rigidBody: this->rigidBodies) {
+            std::vector<float> objectVerts = rigidBody->getVertices();
+            for (auto vert: objectVerts) {
+                this->vertices->push_back(vert);
+            }
+            this->rigidBodyToTriangleNum[rigidBody] = trianglesIndex{numTrianglesBefore, objectVerts.size() / 3};
+            numTrianglesBefore += objectVerts.size() / 3;
         }
     }
-
     glfwInit();
     setWindowHints();
 
@@ -73,6 +79,7 @@ int OpenGL::start() {
     GLuint shaderProgram = linkShaders();
     glUseProgram(shaderProgram); // Todo Delete the program and the shaders after execution
 
+    glfwSetTime(0.0);
     glViewport(0, 0, width, height);
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -83,8 +90,27 @@ int OpenGL::start() {
         //gets rid of previously rendered pixels
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Bind Vertex Array Object
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, this->vertices->size() / 3);
+
+        // Step forward the Physics
+        physicsSandbox->progressPhysics(glfwGetTime());
+
+        // Put the objects in the right place
+        for (auto rigidBody: this->rigidBodies) {
+            auto transformation = glm::mat4(1.0f);
+            transformation = glm::translate(transformation, glm::vec3(rigidBody->position, 1.0f));
+            transformation = glm::rotate(transformation, rigidBody->rotation, glm::vec3(0.0, 0.0, 1.0));
+
+
+            //TODO bind objects/ids to the number of triangles they have
+            GLuint transformLocation = glGetUniformLocation(shaderProgram, "transform");
+            glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transformation));
+
+            // Draw the rigidBody
+            glDrawArrays(GL_TRIANGLES, rigidBodyToTriangleNum[rigidBody].start, rigidBodyToTriangleNum[rigidBody].size);
+        }
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -136,8 +162,8 @@ GLuint OpenGL::linkShaders() { //Create and link Program
     return program;
 }
 
-void OpenGL::addRigidBody(RigidBody* rigidBody) {
-    this->gameObjects.push_back(rigidBody);
+void OpenGL::addRigidBody(RigidBody *rigidBody) {
+    this->rigidBodies.push_back(rigidBody);
 }
 
 OpenGL::~OpenGL() {
@@ -146,6 +172,11 @@ OpenGL::~OpenGL() {
 
 OpenGL::OpenGL() {
     this->vertices = new std::vector<float>();
+    this->physicsSandbox = new PhysicsSandbox();
+}
+
+void OpenGL::setPhysicsSandbox(PhysicsSandbox *physicsSandbox) {
+    OpenGL::physicsSandbox = physicsSandbox;
 }
 
 GLuint createAndCompileShader(const std::string &fileLocation,

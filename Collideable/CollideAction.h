@@ -5,11 +5,11 @@
 #ifndef FAKEBASKETBALL_COLLIDEACTION_H
 #define FAKEBASKETBALL_COLLIDEACTION_H
 
-class Collideable;
+class Collider;
 
 class CollideAction {
 public:
-    virtual void reactToCollision(Collideable* thisObject, Collideable* otherObject) = 0;
+    virtual void reactToCollision(Collider* thisObject, Collider* otherObject) = 0;
     virtual void applyCollision() = 0;
 };
 

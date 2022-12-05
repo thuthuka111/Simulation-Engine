@@ -5,7 +5,7 @@
 #ifndef FAKEBASKETBALL_CONCRETERIGIDBODIES_H
 #define FAKEBASKETBALL_CONCRETERIGIDBODIES_H
 
+#include "Rectangle.h"
 #include "Ball.h"
-#include "EnvironmentBox.h"
 
 #endif //FAKEBASKETBALL_CONCRETERIGIDBODIES_H

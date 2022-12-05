@@ -5,7 +5,9 @@
 #include "Ball.h"
 #include <glm/ext/scalar_constants.hpp>
 
-Ball::Ball(float radius) : radius(radius) {}
+Ball::Ball(float radius) : radius(radius) {
+    this->collider = new CircleCollider(this, radius);
+}
 
 std::vector<float> Ball::getVertices() {
     std::vector<std::pair<float, float>> vectorSet = getUnusableVertices();

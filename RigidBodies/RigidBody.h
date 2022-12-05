@@ -9,12 +9,17 @@
 #include <utility>
 #include <vector>
 
+#include "../Collideable/ConcreteColliders/ConcreteColliders.h"
+
 class RigidBody {
 public:
     //These variables should probably in some other class
-    glm::vec2 position = glm::vec2(0.0f, 0.0f), velocity = glm::vec2(0.0f, 0.0f);
-    glm::vec2 acceleration = glm::vec2(0.0f, 0.0f), rotation = glm::vec2(0.0f, 0.0f);
+    glm::vec2 position = glm::vec2(0.0f, 0.0f);
+    glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
+    glm::vec2 acceleration = glm::vec2(0.0f, 0.0f);
+    float rotation = 0.0f; // Should change this to use quaternions
     float mass = 1.0f;
+    Collider* collider;
 
     virtual std::vector<float> getVertices() = 0;
 };

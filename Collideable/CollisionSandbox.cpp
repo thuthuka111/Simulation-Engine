@@ -4,14 +4,14 @@
 
 #include "CollisionSandbox.h"
 
-void CollisionSandbox::addCollider(Collideable *object) {
+void CollisionSandbox::addCollider(Collider *object) {
     this->collisionObjects.push_back(object);
 }
 
 void
 CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision Detection // WILL BREAK IF 2 THINGS HAVE SAME FLOAT VALUE
-    std::list<Collideable *> activeList;
-    std::map<float, Collideable *> inactiveList;
+    std::list<Collider *> activeList;
+    std::map<float, Collider *> inactiveList;
     for (auto object: collisionObjects) {
         Interval objInt = object->getXInterval();
         inactiveList.insert({objInt.left, object});
@@ -23,8 +23,8 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
         if (activeList.size() > 1) {
             auto activeListIT = activeList.begin();
             for (int i = 0; i < activeList.size(); i++) {
-                Collideable *object1 = *activeListIT;
-                Collideable *object2 = *(++activeListIT);
+                Collider *object1 = *activeListIT;
+                Collider *object2 = *(++activeListIT);
 
                 if (!objectsRecentlyCollided(object1, object2)) {
                     if (object1->isIntersecting(object2)) {
@@ -41,7 +41,7 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
     }
 }
 
-bool CollisionSandbox::objectsRecentlyCollided(Collideable *object1, Collideable *object2) {
+bool CollisionSandbox::objectsRecentlyCollided(Collider *object1, Collider *object2) {
     for (int i = 0; i < 5; i++) {
         if (recentCollisionHistory[i].object1 == object1 && recentCollisionHistory[i].object2 == object2) {
             return true;
@@ -50,7 +50,7 @@ bool CollisionSandbox::objectsRecentlyCollided(Collideable *object1, Collideable
     return false;
 }
 
-void CollisionSandbox::recordCollision(Collideable *object1, Collideable *object2) {
+void CollisionSandbox::recordCollision(Collider *object1, Collider *object2) {
     //TODO add the collision to the list of recent collisions
 }
 

@@ -10,22 +10,22 @@
 #include <map>
 #include <ctime>
 #include <utility>
-#include "Collideable.h"
+#include "Collider.h"
 
 struct collisionID { //TODO change objects to have unique identiferis to save space
-    Collideable* object1;
-    Collideable* object2;
+    Collider* object1;
+    Collider* object2;
 };
 
 class CollisionSandbox {
 private:
     unsigned int collisionCounter = 0;
-    std::vector<Collideable*> collisionObjects;
+    std::vector<Collider*> collisionObjects;
     collisionID recentCollisionHistory[5];
-    bool objectsRecentlyCollided(Collideable* object1, Collideable* object2);
-    void recordCollision(Collideable* object1, Collideable* object2);
+    bool objectsRecentlyCollided(Collider* object1, Collider* object2);
+    void recordCollision(Collider* object1, Collider* object2);
 public:
-    void addCollider(Collideable* object);
+    void addCollider(Collider* object);
     void resolveCollisions();
 };
 
