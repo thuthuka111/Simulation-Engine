@@ -5,12 +5,18 @@
 #ifndef FAKEBASKETBALL_BALL_H
 #define FAKEBASKETBALL_BALL_H
 
+#include "RigidBody.h"
 
-
-class Ball {
-
+class Ball: public RigidBody {
+private:
+    float radius;
+    int vertices = 64; // roundness of the ball
+    std::vector<std::pair<float, float>> getUnusableVertices();
+    std::vector<unsigned int> getIndices();
+public:
+    Ball(float radius);
+    virtual std::vector<float> getVertices();
 };
-
 
 
 #endif //FAKEBASKETBALL_BALL_H
