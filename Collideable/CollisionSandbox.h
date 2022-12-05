@@ -23,6 +23,7 @@ private:
     std::vector<Collideable*> collisionObjects;
     collisionID recentCollisionHistory[5];
     bool objectsRecentlyCollided(Collideable* object1, Collideable* object2);
+    void recordCollision(Collideable* object1, Collideable* object2);
 public:
     void addCollider(Collideable* object);
     void resolveCollisions();

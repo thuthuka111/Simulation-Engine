@@ -23,8 +23,15 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
         if (activeList.size() > 1) {
             auto activeListIT = activeList.begin();
             for (int i = 0; i < activeList.size(); i++) {
-                if (!objectsRecentlyCollided(*activeListIT, *(++activeListIT))) {
-                    //TODO collide object here
+                Collideable *object1 = *activeListIT;
+                Collideable *object2 = *(++activeListIT);
+
+                if (!objectsRecentlyCollided(object1, object2)) {
+                    if (object1->isIntersecting(object2)) {
+                        // collide 1 with 2;
+                        // collide 2 with 1;
+                        recordCollision(object1, object2);
+                    }
                 }
             }
         }
@@ -39,3 +46,8 @@ bool CollisionSandbox::objectsRecentlyCollided(Collideable *object1, Collideable
     }
     return false;
 }
+
+void CollisionSandbox::recordCollision(Collideable *object1, Collideable *object2) {
+    //TODO add the collision to the list of recent collisions
+}
+

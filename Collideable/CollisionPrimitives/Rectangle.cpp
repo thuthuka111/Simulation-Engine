@@ -4,8 +4,12 @@
 
 #include "Rectangle.h"
 
+enum CollisionType;
+
 Rectangle::Rectangle(GameObject *gameObject, unsigned int width, unsigned int height) : Collideable(gameObject),
-                                                                                        width(width), height(height) {}
+                                                                                        width(width), height(height) {
+    collisionType = CollisionType::RECTANGLE;
+}
 
 bool Rectangle::isIntersecting(Rectangle *object2) {
     //TODO to rectangle rectangle intersection

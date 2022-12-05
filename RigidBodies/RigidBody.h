@@ -11,9 +11,10 @@
 
 class GameObject {
 public:
+    //These variables should probably in some other class
     glm::vec2 position = glm::vec2(0.0f, 0.0f), velocity = glm::vec2(0.0f, 0.0f);
     glm::vec2 acceleration = glm::vec2(0.0f, 0.0f), rotation = glm::vec2(0.0f, 0.0f);
-    bool canCollide, staticObject;
+    float mass;
 
     virtual std::vector<float> getVertices() = 0;
 };
