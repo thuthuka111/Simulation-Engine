@@ -4,7 +4,7 @@
 
 #include "Collideable.h"
 
-Collideable::Collideable(GameObject *gameObject1) : gameObject(gameObject1) {}
+Collideable::Collideable(RigidBody *gameObject1) : gameObject(gameObject1) {}
 
 Interval Collideable::getXInterval() { //default, should be overidden
     return Interval{gameObject->position.x - 1, gameObject->position.x + 1};
@@ -13,12 +13,18 @@ Interval Collideable::getXInterval() { //default, should be overidden
 bool Collideable::isIntersecting(Collideable *object2) {
     switch (object2->collisionType) {
         case RECTANGLE:
-            return isIntersecting((Rectangle*)object2);
-//        case POINT: //TODO add these 'isItersecting's to the class definition
-//            return isIntersecting((Point*)object2);
-//        case CIRCLE:
-//            return isIntersecting((Circle*)object2);
-        default:
-            return false;
+            return isIntersecting((Rectangle *) object2);
+        case POINT:
+            return isIntersecting((Point *) object2);
+        case CIRCLE:
+            return isIntersecting((Circle *) object2);
     }
+}
+
+void Collideable::tryCollision(Collideable *otherObject) {
+    this->collideAction->reactToCollision(this, otherObject);
+}
+
+void Collideable::resolveCollision() {
+    this->collideAction->applyCollision();
 }

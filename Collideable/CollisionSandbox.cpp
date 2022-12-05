@@ -28,8 +28,11 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
 
                 if (!objectsRecentlyCollided(object1, object2)) {
                     if (object1->isIntersecting(object2)) {
-                        // collide 1 with 2;
-                        // collide 2 with 1;
+                        object1->tryCollision(object2);
+                        object2->tryCollision(object1);
+                        // only apply the effects after both objects know what they are going to change to
+                        object1->resolveCollision();
+                        object2->resolveCollision();
                         recordCollision(object1, object2);
                     }
                 }

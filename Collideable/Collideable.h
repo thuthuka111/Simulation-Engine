@@ -5,7 +5,8 @@
 #ifndef FAKEBASKETBALL_COLLIDEABLE_H
 #define FAKEBASKETBALL_COLLIDEABLE_H
 
-#include "../GameObjects/GameObject.h"
+#include "../RigidBodies//RigidBody.h"
+#include "CollideAction.h"
 
 class Rectangle;
 class Point;
@@ -23,13 +24,19 @@ struct Interval {
 };
 
 class Collideable {
+private:
+    CollideAction* collideAction;
 public:
-    GameObject* gameObject;
+    RigidBody* gameObject;
     CollisionType collisionType;
-    Collideable(GameObject* gameObject1);
+    Collideable(RigidBody* gameObject1);
+    void tryCollision(Collideable*);
+    void resolveCollision();
     virtual Interval getXInterval();
     bool isIntersecting(Collideable* object2);
-    virtual bool isIntersecting(Rectangle* object2) = 0; //TODO the rest of the types
+    virtual bool isIntersecting(Rectangle* object2) = 0;
+    virtual bool isIntersecting(Circle* object2) = 0;
+    virtual bool isIntersecting(Point* object2) = 0;
 };
 
 
