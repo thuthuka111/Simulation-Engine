@@ -8,7 +8,9 @@
 class Collider;
 
 class CollideAction {
-public:
+protected:
+    Collider* thisObject;
+public://TPDP make it mandatory to have a valid pointer to the parent Object
     virtual void reactToCollision(Collider* thisObject, Collider* otherObject) = 0;
     virtual void applyCollision() = 0;
 };

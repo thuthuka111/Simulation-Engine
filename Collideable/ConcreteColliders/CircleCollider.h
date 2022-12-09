@@ -9,10 +9,16 @@
 
 class CircleCollider: public Collider {
 private:
+    friend Collider;
+    friend RectangleCollider;
+    friend PointCollider;
     float radius;
 public:
+    virtual Interval getXInterval();
     CircleCollider(RigidBody* gameObject, float radius);
     bool isIntersecting(RectangleCollider* object2);
+    bool isIntersecting(CircleCollider* object2);
+    bool isIntersecting(PointCollider* object2);
 };
 
 

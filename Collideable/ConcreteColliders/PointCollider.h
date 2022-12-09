@@ -10,7 +10,10 @@
 class PointCollider: public Collider {
 public:
     PointCollider(RigidBody* gameObject1);
+    virtual Interval getXInterval();
     bool isIntersecting(RectangleCollider* object2);
+    bool isIntersecting(CircleCollider* object2);
+    bool isIntersecting(PointCollider* object2);
 };
 
 

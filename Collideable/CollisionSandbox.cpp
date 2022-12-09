@@ -3,6 +3,19 @@
 //
 
 #include "CollisionSandbox.h"
+#include <iostream>
+
+#include <set>
+#include <map>
+#include <utility>
+
+struct intervalPoint {
+    float point;
+    Collider *collider;
+};
+bool operator< (intervalPoint const &a, intervalPoint const &b) {
+    return a.point < b.point;
+};
 
 void CollisionSandbox::addCollider(Collider *object) {
     this->collisionObjects.push_back(object);
@@ -10,30 +23,42 @@ void CollisionSandbox::addCollider(Collider *object) {
 
 void
 CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision Detection // WILL BREAK IF 2 THINGS HAVE SAME FLOAT VALUE
-    std::list<Collider *> activeList;
-    std::map<float, Collider *> inactiveList;
+    std::set<Collider *> activeList;
+    std::multimap<float, Collider*> inactiveList;
+
     for (auto object: collisionObjects) {
         Interval objInt = object->getXInterval();
         inactiveList.insert({objInt.left, object});
         inactiveList.insert({objInt.right, object});
     }
 
-    for (auto it = inactiveList.begin(); it != inactiveList.end(); ++it) {
-        activeList.push_back(it->second);
-        if (activeList.size() > 1) {
-            auto activeListIT = activeList.begin();
-            for (int i = 0; i < activeList.size(); i++) {
-                Collider *object1 = *activeListIT;
-                Collider *object2 = *(++activeListIT);
+//    std::cout << "Inactive List: "; /// Used to print the set of intervals
+//    for (auto it = inactiveList.begin(); it != inactiveList.end(); ++it) {
+//        std::cout << it->first << " ";
+//    }
+//    std:: cout << std::endl;
 
-                if (!objectsRecentlyCollided(object1, object2)) {
-                    if (object1->isIntersecting(object2)) {
-                        object1->tryCollision(object2);
-                        object2->tryCollision(object1);
-                        // only apply the effects after both objects know what they are going to change to
-                        object1->resolveCollision();
-                        object2->resolveCollision();
-                        recordCollision(object1, object2);
+    for (auto it = inactiveList.begin(); it != inactiveList.end(); ++it) {
+        if(activeList.find(it->second) != activeList.end()) { // Is Already in the active list
+            activeList.erase(it->second);
+        } else {
+            activeList.insert(it->second);
+
+            if (activeList.size() > 1) {
+                auto activeListIT = activeList.begin();
+                for (int i = 0; i < activeList.size() - 1; i++) {
+                    Collider *object1 = *activeListIT;
+                    Collider *object2 = *(++activeListIT);
+
+                    if (!objectsRecentlyCollided(object1, object2)) {
+                        if (object1->isIntersecting(object2)) {
+                            object1->tryCollision(object2);
+                            object2->tryCollision(object1);
+                            // only apply the effects after both objects know what they are going to change to
+                            object1->resolveCollision();
+                            object2->resolveCollision();
+                            recordCollision(object1, object2);
+                        }
                     }
                 }
             }

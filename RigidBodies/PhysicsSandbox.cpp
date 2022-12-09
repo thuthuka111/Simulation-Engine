@@ -21,7 +21,7 @@ void PhysicsSandbox::progressPhysics(float currentTime) {// moves all the object
     }
 
     //TODO all the intersecion Stuff
-    // collisionSandbox->resolveCollisions();
+    collisionSandbox->resolveCollisions();
 
     lastTime = currentTime;
 }

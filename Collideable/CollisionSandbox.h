@@ -6,10 +6,6 @@
 #define FAKEBASKETBALL_COLLISIONSANDBOX_H
 
 #include <vector>
-#include <list>
-#include <map>
-#include <ctime>
-#include <utility>
 #include "Collider.h"
 
 struct collisionID { //TODO change objects to have unique identiferis to save space
