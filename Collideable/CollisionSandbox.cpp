@@ -13,6 +13,11 @@ struct intervalPoint {
     float point;
     Collider *collider;
 };
+
+CollisionSandbox::CollisionSandbox() {
+    this->steadyClock = std::chrono::steady_clock::now();
+}
+
 bool operator< (intervalPoint const &a, intervalPoint const &b) {
     return a.point < b.point;
 };
@@ -67,15 +72,31 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
 }
 
 bool CollisionSandbox::objectsRecentlyCollided(Collider *object1, Collider *object2) {
+    //if the same objects collide within 2 milliseconds can ignore the collision
     for (int i = 0; i < 5; i++) {
         if (recentCollisionHistory[i].object1 == object1 && recentCollisionHistory[i].object2 == object2) {
-            return true;
+            auto millisecondsBetweenCollisions = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - recentCollisionHistory[i].collisionTime).count();
+            // std::cout << millisecondsBetweenCollisions << std::endl;
+            if(millisecondsBetweenCollisions < 300)
+                return true;
         }
     }
     return false;
 }
 
 void CollisionSandbox::recordCollision(Collider *object1, Collider *object2) {
-    //TODO add the collision to the list of recent collisions
+    // Record the time after collision in which the collision happened
+    for(int i = 0; i < 5; i++) {
+        if (recentCollisionHistory[i].object1 == object1 && recentCollisionHistory[i].object2 == object2) {
+            this->recentCollisionHistory[i] = CollisionID{object1, object2, std::chrono::steady_clock::now()};
+            std::cout << "Recorded duplicate collision at: " << std::chrono::duration_cast<std::chrono::milliseconds>(recentCollisionHistory[i].collisionTime - this->steadyClock).count() << "ms" << std::endl;
+            return;
+        }
+    }
+    // If the object collision wasnt in the history
+    this->recentCollisionHistory[collisionCounter] = CollisionID{object1, object2, std::chrono::steady_clock::now()};
+    std::cout << "Recorded collision at: " << std::chrono::duration_cast<std::chrono::milliseconds>(recentCollisionHistory[collisionCounter].collisionTime - this->steadyClock).count() << "ms" << std::endl;
+    collisionCounter = ++collisionCounter % 5;
 }
+
 

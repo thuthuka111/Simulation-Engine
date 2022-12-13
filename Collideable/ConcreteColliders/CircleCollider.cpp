@@ -16,7 +16,7 @@ bool CircleCollider::isIntersecting(RectangleCollider *object2) {
 }
 
 bool CircleCollider::isIntersecting(CircleCollider *object2) {
-    return Collider::CIRCLE_POINT(object2->parentRigidBody->position, this->parentRigidBody->position, this->radius);
+    return Collider::CIRCLE_CIRCLE(this->parentRigidBody->position, this->radius, object2->parentRigidBody->position, object2->radius);
 }
 
 bool CircleCollider::isIntersecting(PointCollider *object2) {

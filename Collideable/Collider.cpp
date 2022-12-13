@@ -160,3 +160,7 @@ std::vector<float> Collider::getSortedProjections(Point *points, glm::vec2 axis)
 
     return scalarValues;
 }
+
+bool Collider::CIRCLE_CIRCLE(Point A, float aRad, Point B, float bRad) {
+    return glm::distance(A, B) < aRad + bRad;
+}

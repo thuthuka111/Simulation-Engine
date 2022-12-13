@@ -43,6 +43,7 @@ protected:
     static bool RECT_CIRCLE(Point rectangleCenter, float width, float height, float rectangleRotation, Point circle, float radius);
     static bool RECT_POINT(Point A, Point B, Point C, Point M);
     static bool CIRCLE_POINT(Point A, Point B, float r);
+    static bool CIRCLE_CIRCLE(Point A, float aRad, Point B, float bRad);
 public:
     RigidBody* parentRigidBody;
     CollisionType collisionType;
