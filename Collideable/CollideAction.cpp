@@ -3,3 +3,6 @@
 //
 
 #include "CollideAction.h"
+#include "Collider.h"
+
+CollideAction::~CollideAction() = default;

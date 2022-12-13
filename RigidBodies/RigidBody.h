@@ -21,6 +21,7 @@ public:
     float mass = 1.0f;
     Collider* collider;
 
+    void setCollisionAction(CollideAction* newCollideAction);
     virtual std::vector<float> getVertices() = 0;
 };
 

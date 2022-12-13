@@ -5,11 +5,12 @@
 #include "Collider.h"
 #include "CollideAction.h"
 #include "../RigidBodies/RigidBody.h"
+#include "CollideActions/CollideActions.h"
 
 #include <algorithm>
 
 Collider::Collider(RigidBody *parentRigidBody, CollisionType collisionType) : parentRigidBody(parentRigidBody), collisionType(collisionType) {
-    // TODO collisionAction = STATIC_ACTION
+    this->collideAction = new NoReaction();
 }
 
 Interval Collider::getXInterval() { //default, should be overridden
@@ -58,7 +59,7 @@ bool
 Collider::RECT_CIRCLE(Point rectangleCenter, float width, float height, float rectangleRotation, Point circle, float radius) {
     using namespace glm;
     // https://www.geeksforgeeks.org/check-if-any-point-overlaps-the-given-circle-and-rectangle/
-    Point lowerLeft = glm::vec2(rectangleCenter - glm::vec2(width, height));
+    Point lowerLeft = glm::vec2(rectangleCenter - glm::vec2(width / 2, height / 2));
 
     // Aligning to rectangles reference
     mat2x2 rotateMatrix(cos(rectangleRotation), sin(rectangleRotation), -sin(rectangleRotation),

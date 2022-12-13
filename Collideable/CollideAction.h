@@ -9,10 +9,11 @@ class Collider;
 
 class CollideAction {
 protected:
-    Collider* thisObject;
+    Collider* thisObject = nullptr;
 public://TPDP make it mandatory to have a valid pointer to the parent Object
     virtual void reactToCollision(Collider* thisObject, Collider* otherObject) = 0;
     virtual void applyCollision() = 0;
+    virtual ~CollideAction();
 };
 
 

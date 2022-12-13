@@ -27,7 +27,6 @@ struct Interval {
 
 typedef glm::vec2 Point;
 
-
 struct Rect {
     Point center;
     float width;
@@ -35,8 +34,9 @@ struct Rect {
 };
 
 class Collider {
+    friend RigidBody;
 private:
-    CollideAction* collideAction;
+    CollideAction* collideAction = nullptr;
     static std::vector<float> getSortedProjections(Point* points, glm::vec2 axis);
 protected:
     static bool RECT_RECT(Rect rectA, float RectARotation, Rect rectB, float RectBRotation);
