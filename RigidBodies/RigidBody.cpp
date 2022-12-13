@@ -11,6 +11,6 @@ void RigidBody::setCollisionAction(CollideAction *newCollideAction) {
     this->collider->collideAction = newCollideAction;
 }
 
-void RigidBody::addTrigger(std::function<void(Collider *)> func) {
+void RigidBody::addTrigger(std::function<void(Collider *, Collider*)> func) {
     this->collider->f_trigger = func;
 }

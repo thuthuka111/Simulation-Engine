@@ -22,7 +22,7 @@ public:
     Collider* collider;
 
     void setCollisionAction(CollideAction* newCollideAction);
-    void addTrigger(std::function<void(Collider*)> func);
+    void addTrigger(std::function<void(Collider*, Collider*)> func);
     virtual std::vector<float> getVertices() = 0;
 };
 

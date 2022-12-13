@@ -62,9 +62,7 @@ Collider::RECT_CIRCLE(Point rectangleCenter, float width, float height, float re
     Point lowerLeft = glm::vec2(rectangleCenter - glm::vec2(width / 2, height / 2));
 
     // Aligning to rectangles reference
-    mat2x2 rotateMatrix(cos(rectangleRotation), sin(rectangleRotation), -sin(rectangleRotation),
-                        cos(rectangleRotation));
-    circle = rotateMatrix * circle;
+    circle = Collider::rotatePoint(rectangleCenter, -rectangleRotation, circle);
 
     // Find the nearest point on the
     // rectangle to the center of
@@ -167,6 +165,14 @@ bool Collider::CIRCLE_CIRCLE(Point A, float aRad, Point B, float bRad) {
 
 void Collider::runTrigger(Collider* otherObject) {
     if(this->f_trigger) {
-        this->f_trigger(otherObject);
+        this->f_trigger(this, otherObject);
     }
+}
+
+Point Collider::rotatePoint(Point rotationPoint, float angle, Point pointToRotate) {
+    using namespace glm;
+    mat2x2 rotateMatrix(cos(angle), sin(angle), -sin(angle), cos(angle));
+    pointToRotate -= rotationPoint;
+    pointToRotate = rotateMatrix * pointToRotate;
+    return pointToRotate += rotationPoint;
 }
