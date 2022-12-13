@@ -7,6 +7,7 @@
 
 #include "glm/glm.hpp"
 #include <vector>
+#include <functional>
 
 class CollideAction;
 class RigidBody;
@@ -38,6 +39,7 @@ class Collider {
 private:
     CollideAction* collideAction = nullptr;
     static std::vector<float> getSortedProjections(Point* points, glm::vec2 axis);
+    std::function<void(Collider*)> f_trigger = {};
 protected:
     static bool RECT_RECT(Rect rectA, float RectARotation, Rect rectB, float RectBRotation);
     static bool RECT_CIRCLE(Point rectangleCenter, float width, float height, float rectangleRotation, Point circle, float radius);
@@ -51,6 +53,7 @@ public:
     void tryCollision(Collider*);
     void resolveCollision();
     bool isIntersecting(Collider* object2);
+    void runTrigger(Collider*);
     virtual Interval getXInterval();
     virtual bool isIntersecting(RectangleCollider* object2) = 0;
     virtual bool isIntersecting(CircleCollider* object2) = 0;

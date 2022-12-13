@@ -1,5 +1,6 @@
 
 //#include <memory>
+#include <iostream>
 #include "OpenGL.h"
 #include "RigidBodies/ConcreteRigidBodies.h"
 #include "Collideable/CollideActions/CollideActions.h"
@@ -13,17 +14,21 @@ int main() {
 
     // Testing Circle on circle
     auto platformCircle = Ball(0.09f);
-    platformCircle.setCollisionAction(new ReflectVelocity());
+    // platformCircle.setCollisionAction(new ElasticCollision());
+    platformCircle.addTrigger([](Collider* otherObject) {
+        otherObject->parentRigidBody->velocity *= 2;
+    });
+    // platformCircle.mass = 4.0f;
     platformCircle.position.y = -0.75f;
-    platformCircle.acceleration.y = 3.3f;
+    // platformCircle.position.x = 0.01f;
+    platformCircle.acceleration.y = 0.1f;
 
 //    //Making rigidBodies
 //    auto platform = Rectangle(1.8f, 0.1f);
 //    platform.position.y = -0.75f;
     auto smallBall = Ball(0.05f);
-    smallBall.setCollisionAction(new ReflectVelocity());
-    // smallBall.velocity.x = 0.05f;
-    smallBall.acceleration.y = -6.0f;
+    smallBall.setCollisionAction(new ElasticCollision());
+    smallBall.acceleration.y = -0.3f;
 
 //    auto bigBall = Ball(0.09f);
 //    bigBall.setCollisionAction(new ReflectVelocity());

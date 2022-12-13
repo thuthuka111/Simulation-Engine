@@ -164,3 +164,9 @@ std::vector<float> Collider::getSortedProjections(Point *points, glm::vec2 axis)
 bool Collider::CIRCLE_CIRCLE(Point A, float aRad, Point B, float bRad) {
     return glm::distance(A, B) < aRad + bRad;
 }
+
+void Collider::runTrigger(Collider* otherObject) {
+    if(this->f_trigger) {
+        this->f_trigger(otherObject);
+    }
+}

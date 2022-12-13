@@ -10,3 +10,7 @@ void RigidBody::setCollisionAction(CollideAction *newCollideAction) {
         delete this->collider->collideAction;
     this->collider->collideAction = newCollideAction;
 }
+
+void RigidBody::addTrigger(std::function<void(Collider *)> func) {
+    this->collider->f_trigger = func;
+}

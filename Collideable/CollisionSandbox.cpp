@@ -62,6 +62,10 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
                             // only apply the effects after both objects know what they are going to change to
                             object1->resolveCollision();
                             object2->resolveCollision();
+
+                            // triggers are run explicitly before the objects collide
+                            object1->runTrigger(object2);
+                            object2->runTrigger(object1);
                             recordCollision(object1, object2);
                         }
                     }
