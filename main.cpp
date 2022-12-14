@@ -15,7 +15,7 @@ int main() {
 
 
     auto platformTrigger = [](Collider* thisObject, Collider* otherObject) {
-        otherObject->parentRigidBody->velocity = glm::vec2 (0.5f, 0.5f);
+        otherObject->parentRigidBody->velocity = glm::vec2 (0.4f, 0.4f);
         glm::vec3 normalVec = glm::vec3(1.0f, 0.0f, 0.0f);
 
         normalVec = glm::rotate(normalVec, thisObject->parentRigidBody->rotation, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -25,7 +25,7 @@ int main() {
         otherObject->parentRigidBody->velocity = glm::vec2 (temp.x, temp.y);
     };
 
-    auto rightPlatform = Rectangle(1.0f, 0.06f);
+    auto rightPlatform = Rectangle(1.2f, 0.06f);
     rightPlatform.addTrigger(platformTrigger);
     rightPlatform.mass = 2.0f;
     rightPlatform.position.x = 0.5f;
