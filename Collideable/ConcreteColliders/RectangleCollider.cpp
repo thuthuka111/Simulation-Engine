@@ -26,7 +26,7 @@ Interval RectangleCollider::getXInterval() {
     float minX = min(p1.x, min(p2.x, min(p3.x, p4.x)));
     float maxX = max(p1.x, max(p2.x, max(p3.x, p4.x)));
 
-    return Interval{minX / 2, maxX};
+    return Interval{minX, maxX};
 }
 
 bool RectangleCollider::isIntersecting(RectangleCollider *object2) {
