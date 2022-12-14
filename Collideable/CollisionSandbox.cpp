@@ -85,7 +85,7 @@ bool CollisionSandbox::objectsRecentlyCollided(Collider *object1, Collider *obje
     if (this->collisionRecord.count(colID) == 0)
         return false;
     auto milliSecondsBetweenCollision = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->collisionRecord[colID]).count();
-    if(milliSecondsBetweenCollision < 200)
+    if(milliSecondsBetweenCollision < 100)
         return true;
     return false;
 }

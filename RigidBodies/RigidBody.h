@@ -20,6 +20,7 @@ public:
     float rotation = 0.0f; // Should change this to use quaternions
     float mass = 1.0f;
     Collider* collider;
+    bool isStatic = false;
 
     void setCollisionAction(CollideAction* newCollideAction);
     void addTrigger(std::function<void(Collider*, Collider*)> func);
