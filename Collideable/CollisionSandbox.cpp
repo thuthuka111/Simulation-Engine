@@ -80,20 +80,23 @@ CollisionSandbox::resolveCollisions() { //Sort and Sweep Narrow Phase Collision 
 }
 
 bool CollisionSandbox::objectsRecentlyCollided(Collider *object1, Collider *object2) {
-    //if the same objects collide within 2 milliseconds can ignore the collision
-    auto colID = CollisionID{object1, object2};
-    if (this->collisionRecord.count(colID) == 0)
-        return false;
-    auto milliSecondsBetweenCollision = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->collisionRecord[colID]).count();
-    if(milliSecondsBetweenCollision < 100)
-        return true;
+    if(this->objectMostRecentCollision.count(object1) == 0 || this->objectMostRecentCollision.count(object2) == 0)
+        return false; // Neither object has collided with anything
+    if(this->objectMostRecentCollision[object1].otherObject == object2 && this->objectMostRecentCollision[object2].otherObject == object1) {
+        auto milliSecondsBetweenCollision = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->objectMostRecentCollision[object1].collisionTime).count();
+        if(milliSecondsBetweenCollision < 100)
+            return true;
+    }
+    // One of the other objects has collided with something else, which means this collision is valid
     return false;
 }
 
 void CollisionSandbox::recordCollision(Collider *object1, Collider *object2) {
-    // Record the time after collision in which the collision happened
-    CollisionID<Collider *, Collider *> colID = CollisionID(object1, object2);
-    this->collisionRecord[colID] = std::chrono::steady_clock::now();
+    // Record the last object an object collided with
+    auto nowTime = std::chrono::steady_clock::now();
+    this->objectMostRecentCollision[object1] = timestamped_collision{object2, nowTime};
+    this->objectMostRecentCollision[object2] = timestamped_collision{object1, nowTime};
 }
+
 
 

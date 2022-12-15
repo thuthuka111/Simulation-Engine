@@ -56,7 +56,7 @@ int main() {
     Point topLeft (-0.5f, 0.5f);
     Point bottomRight(0.5f, 0.1f);
     int numXPoints = 6;
-    int numYPoints = 2;
+    int numYPoints = 3;
     std::vector<std::vector<Ball*>> ballArray;
 
     glm::vec2 pointDiff = topLeft - bottomRight;
@@ -82,7 +82,7 @@ int main() {
     auto heavyBall = Ball(0.025f);
     heavyBall.setCollisionAction(new ElasticCollision());
     heavyBall.mass = 15.0f;
-    heavyBall.velocity.x = -0.3f;
+    heavyBall.velocity.x = -1.3f;
     heavyBall.acceleration.y = -0.45f;
 
     physicsSandbox->addRigidBody(&heavyBall);
