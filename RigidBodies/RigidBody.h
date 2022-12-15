@@ -11,6 +11,12 @@
 
 #include "../Collideable/ConcreteColliders/ConcreteColliders.h"
 
+struct hexColour {
+    int red;
+    int green;
+    int blue;
+};
+
 class RigidBody {
 public:
     //These variables should probably in some other class
@@ -21,10 +27,11 @@ public:
     float mass = 1.0f;
     Collider* collider;
     bool isStatic = false;
+    hexColour colour = hexColour{255, 255, 255};
 
     void setCollisionAction(CollideAction* newCollideAction);
     void addTrigger(std::function<void(Collider*, Collider*)> func);
-    virtual std::vector<float> getVertices() = 0;
+    virtual std::vector<float> getVertexData() = 0;
 };
 
 #endif //FAKEBASKETBALL_RIGIDBODY_H

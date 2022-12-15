@@ -9,7 +9,7 @@ Rectangle::Rectangle(float width, float height) : width(width), height(height) {
     this->collider = new RectangleCollider(this, width, height);
 }
 
-std::vector<float> Rectangle::getVertices() {
+std::vector<float> Rectangle::getVertexData() {
     std::vector<std::pair<float, float>> vectorSet = getUnusableVertices();
     std::vector<unsigned int> indexSet = getIndices();
 
@@ -18,6 +18,12 @@ std::vector<float> Rectangle::getVertices() {
         vertices.push_back(vectorSet[indexSet[i]].first);
         vertices.push_back(vectorSet[indexSet[i]].second);
         vertices.push_back(0.0f);
+
+        //TODO implement a colour strategy elsewhere
+        // Flat colour s for vertex
+        vertices.push_back(colour.red / 255.0f);
+        vertices.push_back(colour.green / 255.0f);
+        vertices.push_back(colour.blue / 255.0f);
     }
 
     return vertices;

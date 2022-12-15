@@ -9,7 +9,7 @@ Ball::Ball(float radius) : radius(radius) {
     this->collider = new CircleCollider(this, radius);
 }
 
-std::vector<float> Ball::getVertices() {
+std::vector<float> Ball::getVertexData() {
     std::vector<std::pair<float, float>> vectorSet = getUnusableVertices();
     std::vector<unsigned int> indexSet = getIndices();
 
@@ -18,6 +18,12 @@ std::vector<float> Ball::getVertices() {
         sphereVerts.push_back(vectorSet[indexSet[i]].first);
         sphereVerts.push_back(vectorSet[indexSet[i]].second);
         sphereVerts.push_back(0.0f);
+
+        //TODO implement a colour strategy elsewhere
+        // Flat colour s for vertex
+        sphereVerts.push_back(colour.red / 255.0f);
+        sphereVerts.push_back(colour.green / 255.0f);
+        sphereVerts.push_back(colour.blue / 255.0f);
     }
 
     return sphereVerts;

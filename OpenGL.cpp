@@ -28,12 +28,12 @@ int OpenGL::start() {
     {
         unsigned int numTrianglesBefore = 0;
         for (RigidBody *rigidBody: this->rigidBodies) {
-            std::vector<float> objectVerts = rigidBody->getVertices();
+            std::vector<float> objectVerts = rigidBody->getVertexData();
             for (auto vert: objectVerts) {
-                this->vertices->push_back(vert);
+                this->verticeData->push_back(vert);
             }
-            this->rigidBodyToTriangleNum[rigidBody] = trianglesIndex{numTrianglesBefore, objectVerts.size() / 3};
-            numTrianglesBefore += objectVerts.size() / 3;
+            this->rigidBodyToTriangleNum[rigidBody] = trianglesIndex{numTrianglesBefore, objectVerts.size() / 6};
+            numTrianglesBefore += objectVerts.size() / 6;
         }
     }
     glfwInit();
@@ -71,10 +71,13 @@ int OpenGL::start() {
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to the buffer we generated to this target
-    glBufferData(GL_ARRAY_BUFFER, this->vertices->size() * sizeof(float), this->vertices->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, this->verticeData->size() * sizeof(float), this->verticeData->data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     GLuint shaderProgram = linkShaders();
     glUseProgram(shaderProgram); // Todo Delete the program and the shaders after execution
@@ -167,11 +170,11 @@ void OpenGL::addRigidBody(RigidBody *rigidBody) {
 }
 
 OpenGL::~OpenGL() {
-    delete vertices;
+    delete verticeData;
 }
 
 OpenGL::OpenGL() {
-    this->vertices = new std::vector<float>();
+    this->verticeData = new std::vector<float>();
     this->physicsSandbox = new PhysicsSandbox();
 }
 

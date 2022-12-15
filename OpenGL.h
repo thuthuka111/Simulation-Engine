@@ -22,7 +22,7 @@ class OpenGL {
     //TODO have a separate class that for things that are displayed
     std::map<RigidBody*, trianglesIndex> rigidBodyToTriangleNum;
     std::vector<RigidBody*> rigidBodies;
-    std::vector<float>* vertices;
+    std::vector<float>* verticeData;
     PhysicsSandbox* physicsSandbox;
 public:
     ~OpenGL();
