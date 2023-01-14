@@ -52,6 +52,7 @@ int main() {
     openGlContext->addRigidBody(&rightPlatform);
     openGlContext->addRigidBody(&leftPlatform);
     openGlContext->addRigidBody(&bottomPlatform);
+    openGlContext->addRigidBody(&topPlatform);
 
     Point topLeft (-0.5f, 0.5f);
     Point bottomRight(0.5f, 0.1f);
@@ -65,6 +66,8 @@ int main() {
         for(int j = 0; j < numYPoints; j++) {
             auto *newBall = new Ball(0.05f);
             newBall->setCollisionAction(new ElasticCollision());
+            newBall->colour = hexColour{0, 200, 0};
+            newBall->mass = 15.0f;
             newBall->position = Point(topLeft.x - (i * pointDiff.x / numXPoints), topLeft.y - (j * pointDiff.y / numYPoints));
             newBall->acceleration.y = -0.35f;
             arrayRows.push_back(newBall);
@@ -81,9 +84,11 @@ int main() {
 
     auto heavyBall = Ball(0.025f);
     heavyBall.setCollisionAction(new ElasticCollision());
-    heavyBall.mass = 15.0f;
-    heavyBall.velocity.x = -1.3f;
-    heavyBall.acceleration.y = -0.45f;
+    heavyBall.colour = hexColour{255, 140, 0};
+    heavyBall.mass = 1.0f;
+    heavyBall.velocity.x = -16.3f;
+    heavyBall.velocity.y = 0.9f;
+    // heavyBall.acceleration.y = -0.45f;
 
     physicsSandbox->addRigidBody(&heavyBall);
     openGlContext->addRigidBody(&heavyBall);

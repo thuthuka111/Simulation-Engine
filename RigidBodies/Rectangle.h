@@ -17,7 +17,7 @@ private:
 public:
     Rectangle(float width, float height);
 
-    virtual std::vector<float> getVertexData();
+    std::vector<float> getVertexData();
 };
 
 #endif //FAKEBASKETBALL_RECTANGLE_H

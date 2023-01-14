@@ -15,7 +15,7 @@ private:
     std::vector<unsigned int> getIndices();
 public:
     Ball(float radius);
-    virtual std::vector<float> getVertexData();
+    std::vector<float> getVertexData();
 };
 
 

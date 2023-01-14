@@ -80,7 +80,7 @@ Collider::RECT_CIRCLE(Point rectangleCenter, float width, float height, float re
     return (dx * dx + dy * dy) <= radius * radius;
 }
 
-bool Collider::RECT_RECT(Rect rectA, float RectARotation, Rect rectB, float RectBRotation) {
+bool Collider::RECT_RECT(Rect rectA, float rectARotation, Rect rectB, float rectBRotation) {
     // https://www.gamedev.net/tutorials/_/technical/game-programming/2d-rotated-rectangle-collision-r2604/
     float halfWidth = rectA.width / 2;
     float halfHeight = rectB.height / 2;
@@ -100,12 +100,12 @@ bool Collider::RECT_RECT(Rect rectA, float RectARotation, Rect rectB, float Rect
     };
 
     // Translate the rectangle Points
-    glm::mat2x2 rectARotateMatrix(cos(RectARotation), sin(RectARotation), -sin(RectARotation), cos(RectARotation));
+    glm::mat2x2 rectARotateMatrix(cos(rectARotation), sin(rectARotation), -sin(rectARotation), cos(rectARotation));
     for (auto rectPoint: rectAPoints) {
         rectPoint = rectARotateMatrix * rectPoint;
     }
 
-    glm::mat2x2 rectBRotateMatrix(cos(RectBRotation), sin(RectBRotation), -sin(RectBRotation), cos(RectBRotation));
+    glm::mat2x2 rectBRotateMatrix(cos(rectBRotation), sin(rectBRotation), -sin(rectBRotation), cos(rectBRotation));
     for (auto rectPoint: rectBPoints) {
         rectPoint = rectBRotateMatrix * rectPoint;
     }

@@ -27,7 +27,8 @@ public:
     float mass = 1.0f;
     Collider* collider;
     bool isStatic = false;
-    hexColour colour = hexColour{255, 255, 255};
+    //hexColour colour = hexColour{255, 255, 255};
+    hexColour colour = hexColour{11, 168, 26};
 
     void setCollisionAction(CollideAction* newCollideAction);
     void addTrigger(std::function<void(Collider*, Collider*)> func);
