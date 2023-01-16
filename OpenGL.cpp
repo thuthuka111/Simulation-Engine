@@ -109,7 +109,7 @@ int OpenGL::start() {
     }
     else {
         // set size to load glyphs as
-        FT_Set_Pixel_Sizes(face, 0, 48);
+        FT_Set_Pixel_Sizes(face, 0, 20);
 
         // disable byte-alignment restriction
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -189,10 +189,20 @@ int OpenGL::start() {
     // render loop
     // -----------
     glfwSetTime(0.0);
+    float prevTime = glfwGetTime();
+    int frameCount = 0;
+    int displayFrameCount = 0;
     glViewport(0, 0, width, height);
     while (!glfwWindowShouldClose(window))
     {
-        float currentFrame = glfwGetTime();
+        float currentTime = glfwGetTime();
+        frameCount++;
+        if(currentTime - prevTime >= 0.1) { // Millisecond has passed
+            displayFrameCount = frameCount * 10;
+
+            frameCount = 0;
+            prevTime = currentTime;
+        }
 
         // glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Defaults to black
         glClear(GL_COLOR_BUFFER_BIT);
@@ -228,15 +238,10 @@ int OpenGL::start() {
         auto text2color = glm::vec3(0.5, 0.8f, 0.2f);
         glUseProgram(textProgram);
 
-        glUniform3f(glGetUniformLocation(textProgram, "textColor"), text1color.x, text1color.y, text1color.z);
-        glActiveTexture(GL_TEXTURE0);
-        glBindVertexArray(VAOs[1]);
-        renderText("(C) LearnOpenGL.com", 340.0f, 370.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
-
         glUniform3f(glGetUniformLocation(textProgram, "textColor"), text2color.x, text2color.y, text2color.z);
         glActiveTexture(GL_TEXTURE0);
         glBindVertexArray(VAOs[1]);
-        renderText("This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+        renderText("FPS: " + std::to_string(displayFrameCount), 10.0f, 10.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
