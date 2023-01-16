@@ -19,4 +19,7 @@ include_directories(glm)
 
 add_executable(FakeBasketball ${SOURCE_FILES})
 
-target_link_libraries(FakeBasketball glfw libglew_static)
+#include(C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake)
+find_package(Freetype REQUIRED)
+target_link_libraries(FakeBasketball PRIVATE Freetype::Freetype)
+target_link_libraries(FakeBasketball PRIVATE glfw libglew_static)
