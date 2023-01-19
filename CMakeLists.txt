@@ -8,6 +8,7 @@ file(GLOB_RECURSE SOURCE_FILES
         OpenGL.cpp
         RigidBodies/*.cpp
         Collideable/*.cpp
+        InputHandler/*.cpp
 )
 
 add_subdirectory(glew)

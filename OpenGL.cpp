@@ -27,6 +27,8 @@ GLuint createAndCompileShader(const std::string &fileLocation, GLuint shaderType
 
 std::string readFileToString(const std::string &fileLocation);
 
+GLFWwindow* realWindow = nullptr;
+
 int OpenGL::start() {
     //Make Vertices Before Window
     {
@@ -43,7 +45,7 @@ int OpenGL::start() {
     glfwInit();
     setWindowHints();
 
-    GLFWwindow *window = glfwCreateWindow(500, 500, "Thuthuka Engine", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(width,  height, "Thuthuka Engine", NULL, NULL);
 
     if (!window) {
         std::cerr << "GLFW window creation failed" << std::endl;
@@ -51,9 +53,11 @@ int OpenGL::start() {
         return -2;
     }
 
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, handleKeyInput);
+    glfwSetWindowUserPointer(window, this);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "Glew initialisation failed" << std::endl;
@@ -109,7 +113,7 @@ int OpenGL::start() {
     }
     else {
         // set size to load glyphs as
-        FT_Set_Pixel_Sizes(face, 0, 20);
+        FT_Set_Pixel_Sizes(face, 0, 80);
 
         // disable byte-alignment restriction
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -210,6 +214,11 @@ int OpenGL::start() {
         //gets rid of previously rendered pixels
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Move player
+        for(auto inputHandler: this->inputHandlers) {
+            inputHandler->doPlayerAction();
+        }
+
         // Step forward the Physics
         physicsSandbox->progressPhysics(glfwGetTime());
 
@@ -234,14 +243,20 @@ int OpenGL::start() {
 
         // Text render Pass
         // activate corresponding render state
-        auto text1color = glm::vec3(0.3, 0.7f, 0.9f);
-        auto text2color = glm::vec3(0.5, 0.8f, 0.2f);
+        auto text1color = glm::vec3(0.5, 0.8f, 0.2f);
+        auto scoreTextColor= glm::vec3(0.3, 0.7f, 0.9f);
         glUseProgram(textProgram);
 
-        glUniform3f(glGetUniformLocation(textProgram, "textColor"), text2color.x, text2color.y, text2color.z);
+        glUniform3f(glGetUniformLocation(textProgram, "textColor"), text1color.x, text1color.y, text1color.z);
         glActiveTexture(GL_TEXTURE0);
         glBindVertexArray(VAOs[1]);
-        renderText("FPS: " + std::to_string(displayFrameCount), 10.0f, 10.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+        renderText("FPS: " + std::to_string(displayFrameCount), 10.0f, 10.0f, 0.4f);
+
+        glUniform3f(glGetUniformLocation(textProgram, "textColor"), scoreTextColor.x, scoreTextColor.y, scoreTextColor.z);
+        glActiveTexture(GL_TEXTURE0);
+        renderText(std::to_string(leftSideScore), 30.0f, 600.0f, 1.0f);
+        glActiveTexture(GL_TEXTURE0);
+        renderText(std::to_string(rightSideScore), 750.0f, 600.0f, 1.0f);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -272,6 +287,11 @@ void handleKeyInput(GLFWwindow *window, int key, int status, int action, int mod
     // handle Key inputs, change this to the playerInputHandler
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    // Move player
+    for(auto inputHandler: static_cast<OpenGL*>(glfwGetWindowUserPointer(window))->inputHandlers) {
+        inputHandler->handleInput(key, status, action, mods);
     }
 }
 
@@ -356,7 +376,7 @@ GLuint createAndCompileShader(const std::string &fileLocation,
     return shader;
 }
 
-void OpenGL::renderText(std::string text, float x, float y, float scale, glm::vec3 color)
+void OpenGL::renderText(std::string text, float x, float y, float scale)
 {
     // iterate through all characters
     std::string::const_iterator c;
@@ -391,7 +411,7 @@ void OpenGL::renderText(std::string text, float x, float y, float scale, glm::ve
         // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
         x += (ch.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
-    glBindVertexArray(0);
+    // glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

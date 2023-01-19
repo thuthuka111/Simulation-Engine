@@ -23,7 +23,7 @@ void ElasticCollision::reactToCollision(Collider *thisObject, Collider *otherObj
         normalVec = glm::normalize(normalVec);
         auto temp = glm::reflect(glm::vec3(thisObject->parentRigidBody->velocity, 0.0f), normalVec);
 
-        this->newVelocity = glm::vec2 (temp.x, temp.y);
+        this->newVelocity = glm::vec2 (temp.x, temp.y) * 0.8f; // dampening
 
         return;
     }

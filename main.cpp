@@ -5,6 +5,7 @@
 #include "OpenGL.h"
 #include "RigidBodies/ConcreteRigidBodies.h"
 #include "Collideable/CollideActions/CollideActions.h"
+#include "InputHandler/PlayerInputHandler.h"
 
 int main() {
     auto *openGlContext = new OpenGL();
@@ -13,32 +14,32 @@ int main() {
     //Assigning the Sandboxes, which must be the same thing the same thing
     openGlContext->setPhysicsSandbox(physicsSandbox);
 
-    auto platformTrigger = [](Collider* thisObject, Collider* otherObject) {
-        otherObject->parentRigidBody->velocity = glm::vec2 (0.4f, 0.4f);
+    auto platformTrigger = [](Collider *thisObject, Collider *otherObject) {
+        otherObject->parentRigidBody->velocity = glm::vec2(0.4f, 0.4f);
         glm::vec3 normalVec = glm::vec3(1.0f, 0.0f, 0.0f);
 
         normalVec = glm::rotate(normalVec, thisObject->parentRigidBody->rotation, glm::vec3(0.0f, 0.0f, 1.0f));
         normalVec = glm::normalize(normalVec);
         auto temp = glm::reflect(glm::vec3(otherObject->parentRigidBody->velocity, 0.0f), normalVec);
 
-        otherObject->parentRigidBody->velocity = glm::vec2 (temp.x, temp.y);
+        otherObject->parentRigidBody->velocity = glm::vec2(temp.x, temp.y);
     };
 
-    auto bottomPlatform = Rectangle(1.7f, 0.06f);
+    auto bottomPlatform = Rectangle(1.7f, 0.03f);
     bottomPlatform.isStatic = true;
     bottomPlatform.position.y = -0.75f;
 
-    auto topPlatform = Rectangle(1.7f, 0.06f);
+    auto topPlatform = Rectangle(1.7f, 0.03f);
     topPlatform.isStatic = true;
     topPlatform.position.y = 0.75f;
 
-    auto rightPlatform = Rectangle(1.4f, 0.06f);
+    auto rightPlatform = Rectangle(1.4f, 0.05f);
     rightPlatform.isStatic = true;
     rightPlatform.position.x = 0.75f;
     rightPlatform.position.y = -0.05f;
     rightPlatform.rotation = 1.57f;
 
-    auto leftPlatform = Rectangle(1.4f, 0.06f);
+    auto leftPlatform = Rectangle(1.4f, 0.05f);
     leftPlatform.isStatic = true;
     leftPlatform.position.x = -0.75f;
     leftPlatform.position.y = -0.05f;
@@ -54,45 +55,36 @@ int main() {
     openGlContext->addRigidBody(&bottomPlatform);
     openGlContext->addRigidBody(&topPlatform);
 
-    Point topLeft (-0.5f, 0.5f);
-    Point bottomRight(0.5f, 0.1f);
-    int numXPoints = 6;
-    int numYPoints = 3;
-    std::vector<std::vector<Ball*>> ballArray;
+    auto basketBall = Ball(0.066f);
+    basketBall.setCollisionAction(new ElasticCollision());
+    basketBall.colour = hexColour{255, 140, 0};
+    basketBall.mass = 2.0f;
 
-    glm::vec2 pointDiff = topLeft - bottomRight;
-    for(int i = 0; i < numXPoints; i++) {
-        std::vector<Ball*> arrayRows;
-        for(int j = 0; j < numYPoints; j++) {
-            auto *newBall = new Ball(0.05f);
-            newBall->setCollisionAction(new ElasticCollision());
-            newBall->colour = hexColour{0, 200, 0};
-            newBall->mass = 15.0f;
-            newBall->position = Point(topLeft.x - (i * pointDiff.x / numXPoints), topLeft.y - (j * pointDiff.y / numYPoints));
-            newBall->acceleration.y = -0.35f;
-            arrayRows.push_back(newBall);
+    rightPlatform.addTrigger([&](Collider *thisObject, Collider *otherObject) {
+        if (thisObject == basketBall.collider || otherObject == basketBall.collider) {
+            openGlContext->rightSideScore++;
         }
-        ballArray.push_back(arrayRows);
-    }
-
-    for(auto ballRow: ballArray) {
-        for(auto ball: ballRow) {
-            physicsSandbox->addRigidBody(ball);
-            openGlContext->addRigidBody(ball);
+    });
+    leftPlatform.addTrigger([&](Collider *thisObject, Collider *otherObject) {
+        if (thisObject == basketBall.collider || otherObject == basketBall.collider) {
+            openGlContext->leftSideScore++;
         }
-    }
+    });
 
-    auto heavyBall = Ball(0.025f);
-    heavyBall.setCollisionAction(new ElasticCollision());
-    heavyBall.colour = hexColour{255, 140, 0};
-    heavyBall.mass = 1.0f;
-    heavyBall.velocity.x = -16.3f;
-    heavyBall.velocity.y = 0.9f;
-    // heavyBall.acceleration.y = -0.45f;
+    physicsSandbox->addRigidBody(&basketBall);
+    openGlContext->addRigidBody(&basketBall);
 
-    physicsSandbox->addRigidBody(&heavyBall);
-    openGlContext->addRigidBody(&heavyBall);
+    auto playerBall = Ball(0.043f);
+    playerBall.position.x = -0.5f;
+    playerBall.setCollisionAction(new ElasticCollision());
+    playerBall.colour = hexColour{100, 130, 175};
+    playerBall.mass = 1.4f;
 
+    physicsSandbox->addRigidBody(&playerBall);
+    openGlContext->addRigidBody(&playerBall);
+    // Set Player 1 input handler
+    auto player1handler = PlayerInputHandler(&playerBall);
+    openGlContext->addInputHandler(&player1handler);
 
     int returnCode = openGlContext->start();
     delete openGlContext;
