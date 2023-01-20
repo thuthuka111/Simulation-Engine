@@ -30,6 +30,11 @@ std::string readFileToString(const std::string &fileLocation);
 GLFWwindow* realWindow = nullptr;
 
 int OpenGL::start() {
+    if(!canRunSomthing) {
+        std::cerr << "Nothing to run" << std::endl;
+        return -1;
+    }
+
     //Make Vertices Before Window
     {
         unsigned int numTrianglesBefore = 0;
@@ -252,11 +257,11 @@ int OpenGL::start() {
         glBindVertexArray(VAOs[1]);
         renderText("FPS: " + std::to_string(displayFrameCount), 10.0f, 10.0f, 0.4f);
 
-        glUniform3f(glGetUniformLocation(textProgram, "textColor"), scoreTextColor.x, scoreTextColor.y, scoreTextColor.z);
-        glActiveTexture(GL_TEXTURE0);
-        renderText(std::to_string(leftSideScore), 30.0f, 600.0f, 1.0f);
-        glActiveTexture(GL_TEXTURE0);
-        renderText(std::to_string(rightSideScore), 750.0f, 600.0f, 1.0f);
+        for(auto textItem: *currentGame->getTextElements()) {
+            glUniform3f(glGetUniformLocation(textProgram, "textColor"), textItem->color.x, textItem->color.y, textItem->color.z);
+            glActiveTexture(GL_TEXTURE0);
+            renderText(textItem->text, textItem->xPos, textItem->yPos, textItem->scale);
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -413,6 +418,11 @@ void OpenGL::renderText(std::string text, float x, float y, float scale)
     }
     // glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void OpenGL::setGame(Game *game) {
+    this->currentGame = game;
+    this->canRunSomthing = true;
 }
 
 std::string readFileToString(const std::string &fileLocation) {

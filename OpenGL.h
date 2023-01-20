@@ -13,6 +13,7 @@
 #include "Collideable/CollisionSandbox.h"
 #include "RigidBodies/PhysicsSandbox.h"
 #include "InputHandler/PlayerInputHandler.h"
+#include "InputHandler/Game.h"
 
 // To hold a FreeFont character
 struct Character {
@@ -37,11 +38,10 @@ class OpenGL {
     std::vector<RigidBody *> rigidBodies;
     std::vector<float> *verticeData;
     PhysicsSandbox *physicsSandbox;
+    bool canRunSomthing = false;
+    Game *currentGame;
 public:
-    // Game of sorts, abstract this out
-    int leftSideScore = 0;
-    int rightSideScore = 0;
-    std::vector<PlayerInputHandler*> inputHandlers;
+    std::vector<PlayerInputHandler*> inputHandlers; // should put this in game
     ~OpenGL();
 
     OpenGL();
@@ -59,6 +59,8 @@ public:
     void addInputHandler(PlayerInputHandler* inputHandler) {
         this->inputHandlers.insert(this->inputHandlers.end(), inputHandler);
     }
+
+    void setGame(Game* game);
 };
 
 
