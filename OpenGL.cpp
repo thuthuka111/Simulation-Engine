@@ -224,6 +224,9 @@ int OpenGL::start() {
             inputHandler->doPlayerAction();
         }
 
+        // Update the update the simulation state from Networking
+
+
         // Step forward the Physics
         physicsSandbox->progressPhysics(glfwGetTime());
 

@@ -20,7 +20,7 @@ void PhysicsSandbox::progressPhysics(float currentTime) {// moves all the object
         rigidBody->position += rigidBody->velocity * deltaTime;
     }
 
-    //TODO all the intersecion Stuff
+    //TODO all the intersection Stuff
     collisionSandbox->resolveCollisions();
 
     lastTime = currentTime;

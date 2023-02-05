@@ -1,0 +1,9 @@
+[package]
+name = "basketball_networking"
+version = "0.1.0"
+authors = ["Thuthuka Khumalo <thuthuka111@gmail.com>"]
+
+[lib]
+crate-type = ["staticlib", "lib"]
+
+[dependencies]
