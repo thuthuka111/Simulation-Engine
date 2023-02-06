@@ -30,6 +30,7 @@ pub mod server {
         net::{TcpListener, TcpStream},
     };
 
+    #[no_mangle]
     pub extern "C" fn server_start() {
         let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
         let (tx, rx) = mpsc::channel();
@@ -160,7 +161,8 @@ pub mod client {
 
     use super::*;
 
-    pub fn start_client() {
+    #[no_mangle]
+    pub extern "C" fn start_client() {
         match TcpStream::connect("localhost:7878") {
             Ok(mut stream) => {
                 println!("Successfully connected to local server in port 7878");
