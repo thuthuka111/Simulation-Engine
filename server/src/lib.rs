@@ -21,6 +21,7 @@ struct Player {
 }
 
 pub mod server {
+    use super::*;
     use std::sync::mpsc::Sender;
     use std::sync::{mpsc, Arc, Mutex};
     use std::thread;
@@ -28,8 +29,6 @@ pub mod server {
         io::{prelude::*, BufReader},
         net::{TcpListener, TcpStream},
     };
-    use Velocity;
-    use {Player, Position};
 
     pub extern "C" fn server_start() {
         let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
@@ -45,7 +44,7 @@ pub mod server {
         }));
 
         thread_handles.push(thread::spawn(move || {
-            let mut other_player: Option<Player> = None;
+            let mut other_player: Option<(TcpStream, Player)> = None;
             let mut can_start_game = false;
 
             // Match Clients with a Connection
@@ -68,36 +67,44 @@ pub mod server {
         }
     }
 
-    fn run_game_instance(p1: &Player, p2: &Player) {
-        println!("Player 1: {:?}", p1);
-        println!("Player 2: {:?}", p2);
-    }
-
     fn listen_for_connections(
         listener: &TcpListener,
-        tx: &Arc<Mutex<Sender<Player>>>,
+        tx: &Arc<Mutex<Sender<(TcpStream, Player)>>>,
         player_count: &Arc<Mutex<u32>>,
     ) {
         let mut thread_handles = vec![];
 
         for stream in listener.incoming() {
             match stream {
-                Ok(stream) => {
+                Ok(mut stream) => {
                     println!("New connection: {}", stream.peer_addr().unwrap());
-                    let player_count = Arc::clone(&player_count);
-                    let tx = Arc::clone(&tx);
-                    let thread_handle = thread::spawn(move || {
-                        let mut player_id = player_count.lock().unwrap();
-                        let tx = tx.lock().unwrap();
 
-                        (*tx)
-                            .send(Player::new(*player_id))
-                            .expect("Receiver not there for some reason");
+                    match valid_game_connection(&stream) {
+                        Ok(_) => {
+                            // Send to Wait for another person
+                            let response = String::from("CON EST, LOOKING SEARCHING FOR PLAYER\n");
+                            stream.write_all(response.as_bytes()).unwrap();
 
-                        *player_id += 1;
-                    });
+                            let player_count = Arc::clone(&player_count);
+                            let tx = Arc::clone(&tx);
+                            let thread_handle = thread::spawn(move || {
+                                let mut player_id = player_count.lock().unwrap();
+                                let tx = tx.lock().unwrap();
 
-                    thread_handles.push(thread_handle);
+                                (*tx)
+                                    .send((stream, Player::new(*player_id)))
+                                    .expect("Receiver not there for some reason");
+
+                                *player_id += 1;
+                            });
+
+                            thread_handles.push(thread_handle);
+                        }
+                        Err(()) => {
+                            eprintln!("FUGAZI");
+                            // Not a Valid game connection, end connection
+                        }
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error: {}", e);
@@ -108,6 +115,23 @@ pub mod server {
         for thread_handle in thread_handles {
             thread_handle.join().unwrap();
         }
+    }
+
+    fn valid_game_connection(mut tcp_stream: &TcpStream) -> Result<(), ()> {
+        let buf_reader = BufReader::new(&mut tcp_stream);
+        let request_line = buf_reader.lines().next().unwrap().unwrap(); // This breaks if there is no \r\n
+
+        println!("{}", request_line);
+        if request_line == "EST CONNECTION" {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    fn run_game_instance(p1: &(TcpStream, Player), p2: &(TcpStream, Player)) {
+        println!("Player 1: {:?}", p1);
+        println!("Player 2: {:?}", p2);
     }
 
     impl Player {
@@ -122,6 +146,50 @@ pub mod server {
                     x: 0.0f32,
                     y: 0.0f32,
                 },
+            }
+        }
+    }
+}
+
+pub mod client {
+    use std::{
+        io::{BufRead, BufReader, Read, Write},
+        net::TcpStream,
+        str::from_utf8,
+    };
+
+    use super::*;
+
+    pub fn start_client() {
+        match TcpStream::connect("localhost:7878") {
+            Ok(mut stream) => {
+                println!("Successfully connected to local server in port 7878");
+
+                let response = b"EST CONNECTION\r\n";
+
+                stream.write(response).unwrap();
+
+                let mut buf_reader = BufReader::new(&mut stream);
+
+                let mut con_est = false;
+
+                for line in buf_reader.lines() {
+                    let returned_line = line.expect("Cannot read new line");
+
+                    if returned_line == "CON EST, LOOKING SEARCHING FOR PLAYER" {
+                        println!("Listening for more data");
+                        con_est = true;
+                    } else if con_est {
+                        println!("The recieved line: {}", returned_line);
+
+                        println!("Listening for more data");
+                    } else {
+                        break;
+                    }
+                }
+            }
+            Err(e) => {
+                eprint!("Failed to connect: {}", e);
             }
         }
     }
