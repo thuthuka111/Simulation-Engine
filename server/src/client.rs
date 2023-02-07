@@ -1,14 +1,16 @@
+
+use crate::serde_json;
+
 use std::{
     error::Error,
     fmt,
-    io::{self, BufRead, BufReader, BufWriter, Read, Write},
+    io::{BufRead, BufReader, BufWriter, Read, Write},
     net::TcpStream,
-    str::from_utf8,
+    thread,
+    time::Duration,
 };
 
 use crate::Player;
-
-use std::sync::mpsc;
 
 #[derive(Debug)]
 struct MyError(String);
@@ -26,13 +28,15 @@ impl Error for MyError {}
 pub extern "C" fn start_client(
     server_string: String, // Change this to be FFI safe
     _send_data_func: unsafe extern "C" fn(Player),
-    _get_data_func: unsafe extern "C" fn() -> Player,
+    get_data_func: unsafe extern "C" fn() -> Player, // Could be a reference
 ) -> bool {
+    let get_data_func_ptr = get_data_func as *const ();
+
     match try_connect(server_string) {
-        Ok(mut stream) => {
+        Ok(stream) => {
             println!("Successfully connected to local server in port 7878");
 
-            let mut reader_stream = stream;
+            let reader_stream = stream;
             let mut writer_stream = reader_stream.try_clone().expect("Could'nt clone stream");
 
             let initial_response = b"EST CONNECTION\n";
@@ -47,14 +51,20 @@ pub extern "C" fn start_client(
                 for line in buf_reader.by_ref().lines() {
                     let returned_line = match line {
                         Ok(line) => line,
-                        Err(_) => {"END CONNECTION".into()},
+                        Err(_) => "END CONNECTION".into(),
                     };
 
                     if returned_line == "CON EST, LOOKING SEARCHING FOR PLAYER" {
                         println!("Listening: Looking for player");
                         con_est = true;
                     } else if con_est {
-                        if handle_communication(&mut writer_stream, &returned_line).is_err() {
+                        if handle_communication(
+                            &mut writer_stream,
+                            &returned_line,
+                            get_data_func_ptr,
+                        )
+                        .is_err()
+                        {
                             valid_con = false;
                             break;
                         }
@@ -62,8 +72,11 @@ pub extern "C" fn start_client(
                         break;
                     }
                 }
+                thread::sleep(Duration::from_secs(2));
+                // only ask for data ever 0.1 millisecond
+                // thread::sleep(Duration::from_millis(100));
             }
-            if(valid_con) {
+            if valid_con {
                 writer_stream.write(b"END CONNECTION\n").unwrap();
             }
             println!("SERVER: ENDING");
@@ -81,13 +94,31 @@ fn try_connect(addr: String) -> Result<TcpStream, Box<dyn Error>> {
     Ok(stream)
 }
 
-fn handle_communication(write_stream: &mut TcpStream, line: &str) -> Result<(), Box<dyn Error>> {
-
-    if(line == "END CONNECTION") {
+fn handle_communication(
+    write_stream: &mut TcpStream,
+    line: &str,
+    data_from_frontend_ptr: *const (),
+) -> Result<(), Box<dyn Error>> {
+    if line == "END CONNECTION" {
         return Err(Box::new(MyError("Server ended Connection".into())));
     }
-    println!("The recieved line: {}", line);
-    write_stream.write(b"SOME SHIT")?;
+
+    let new_player: Option<Player>;
+    unsafe {
+        // calling a C function that should give us new player data
+        // this function should be turned into a function that returns any data really, stating what it is
+        new_player = Some(std::mem::transmute::<*const (), fn() -> Player>(
+            data_from_frontend_ptr,
+        )());
+    }
+    let new_player = new_player.expect("No New Player Data");
+    let send_data = {
+        let data_type = "PLAYER UPDATE";
+        let new_player = serde_json::to_string(&new_player).expect("Bad Data");
+        format!("{}\n{}\n", data_type, new_player)
+    };
+
+    write_stream.write(send_data.as_bytes())?;
     Ok(())
 }
 
