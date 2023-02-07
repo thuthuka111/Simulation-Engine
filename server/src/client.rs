@@ -40,25 +40,33 @@ pub extern "C" fn start_client(
 
             let mut buf_reader = BufReader::new(&reader_stream);
 
-            let mut still_listening = true;
+            let mut valid_con = true;
             let mut con_est = false;
 
-            while still_listening {
+            while valid_con {
                 for line in buf_reader.by_ref().lines() {
-                    let returned_line = line.expect("Cannot read line");
+                    let returned_line = match line {
+                        Ok(line) => line,
+                        Err(_) => {"END CONNECTION".into()},
+                    };
 
                     if returned_line == "CON EST, LOOKING SEARCHING FOR PLAYER" {
                         println!("Listening: Looking for player");
                         con_est = true;
                     } else if con_est {
                         if handle_communication(&mut writer_stream, &returned_line).is_err() {
-                            still_listening = false;
+                            valid_con = false;
+                            break;
                         }
                     } else {
                         break;
                     }
                 }
             }
+            if(valid_con) {
+                writer_stream.write(b"END CONNECTION\n").unwrap();
+            }
+            println!("SERVER: ENDING");
             return true;
         }
         Err(e) => {
@@ -74,6 +82,10 @@ fn try_connect(addr: String) -> Result<TcpStream, Box<dyn Error>> {
 }
 
 fn handle_communication(write_stream: &mut TcpStream, line: &str) -> Result<(), Box<dyn Error>> {
+
+    if(line == "END CONNECTION") {
+        return Err(Box::new(MyError("Server ended Connection".into())));
+    }
     println!("The recieved line: {}", line);
     write_stream.write(b"SOME SHIT")?;
     Ok(())
