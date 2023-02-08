@@ -1,12 +1,13 @@
-
 use crate::serde_json;
 
 use std::{
     error::Error,
     fmt,
     io::{BufRead, BufReader, BufWriter, Read, Write},
+    marker,
     net::TcpStream,
-    thread,
+    sync::{mpsc, Arc, Mutex},
+    thread::{self, JoinHandle},
     time::Duration,
 };
 
@@ -32,54 +33,23 @@ pub extern "C" fn start_client(
 ) -> bool {
     let get_data_func_ptr = get_data_func as *const ();
 
-    match try_connect(server_string) {
-        Ok(stream) => {
-            println!("Successfully connected to local server in port 7878");
+    match TcpStream::connect(server_string) {
+        Ok(tcp_stream) => {
+            thread::scope(|scope| {
+                let on_message_callback = |data: &str| {
+                    println!("Received: {}", data);
 
-            let reader_stream = stream;
-            let mut writer_stream = reader_stream.try_clone().expect("Could'nt clone stream");
+                    // call the handle_communication function
+                    None
+                };
 
-            let initial_response = b"EST CONNECTION\n";
-            writer_stream.write(initial_response).unwrap();
+                let server_connection = Connection::new(tcp_stream, scope, on_message_callback);
 
-            let mut buf_reader = BufReader::new(&reader_stream);
+                server_connection.send_message("EST CONNECTION\n".into());
 
-            let mut valid_con = true;
-            let mut con_est = false;
+                // server connection threads will be joined here
+            });
 
-            while valid_con {
-                for line in buf_reader.by_ref().lines() {
-                    let returned_line = match line {
-                        Ok(line) => line,
-                        Err(_) => "END CONNECTION".into(),
-                    };
-
-                    if returned_line == "CON EST, LOOKING SEARCHING FOR PLAYER" {
-                        println!("Listening: Looking for player");
-                        con_est = true;
-                    } else if con_est {
-                        if handle_communication(
-                            &mut writer_stream,
-                            &returned_line,
-                            get_data_func_ptr,
-                        )
-                        .is_err()
-                        {
-                            valid_con = false;
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-                thread::sleep(Duration::from_secs(2));
-                // only ask for data ever 0.1 millisecond
-                // thread::sleep(Duration::from_millis(100));
-            }
-            if valid_con {
-                writer_stream.write(b"END CONNECTION\n").unwrap();
-            }
-            println!("SERVER: ENDING");
             return true;
         }
         Err(e) => {
@@ -89,11 +59,7 @@ pub extern "C" fn start_client(
     }
 }
 
-fn try_connect(addr: String) -> Result<TcpStream, Box<dyn Error>> {
-    let stream = TcpStream::connect(addr)?;
-    Ok(stream)
-}
-
+// Return an Optional String to be sent to the other server
 fn handle_communication(
     write_stream: &mut TcpStream,
     line: &str,
@@ -103,6 +69,7 @@ fn handle_communication(
         return Err(Box::new(MyError("Server ended Connection".into())));
     }
 
+    println!("Here");
     let new_player: Option<Player>;
     unsafe {
         // calling a C function that should give us new player data
@@ -118,6 +85,7 @@ fn handle_communication(
         format!("{}\n{}\n", data_type, new_player)
     };
 
+    println!("Wrintign the followingn:\n{}", send_data);
     write_stream.write(send_data.as_bytes())?;
     Ok(())
 }
@@ -142,5 +110,75 @@ fn _validate_connection<'a, 'b>(
         Ok((buf_reader, buf_writer))
     } else {
         Err(Box::new(MyError("Oops".into())))
+    }
+}
+
+struct Connection<'a, F>
+where
+    F: (Fn(&str) -> Option<String>) + Send + 'a,
+{
+    tx: Arc<Mutex<mpsc::Sender<String>>>,
+    thread_handles: Vec<thread::ScopedJoinHandle<'a, ()>>,
+    phantom: marker::PhantomData<&'a F>,
+}
+
+impl<'a, F> Connection<'a, F>
+where
+    F: (Fn(&str) -> Option<String>) + Send + 'a,
+{
+    fn new(tcp_stream: TcpStream, scope: &'a thread::Scope<'a, '_>, func: F) -> Self {
+        let (tx, rx) = mpsc::channel::<String>();
+
+        let tx = Arc::new(Mutex::new(tx));
+        let tx_clone = Arc::clone(&tx);
+
+        let mut writer_stream = tcp_stream.try_clone().unwrap();
+        let reader_stream = writer_stream.try_clone().unwrap();
+
+        let thread_handles = vec![
+            scope.spawn(move || {
+                let tx = tx_clone;
+                let mut buf_reader = BufReader::new(reader_stream);
+
+                for line in buf_reader.lines() {
+                    match line {
+                        Ok(line) => {
+                            func(&line);
+
+                            // have this return an optional Response
+                            if let Ok(tx) = tx.lock() {
+                                (*tx).send("string tbd".into()).unwrap();
+                            }
+                        }
+                        Err(_) => {
+                            println!("SERVER ERROR");
+                            break;
+                        }
+                    }
+                }
+            }),
+            scope.spawn(move || {
+                for received in rx {
+                    println!("Going to send the following: {}", received);
+
+                    // exit loop on on error
+                    if let Err(_) = writer_stream.write(received.as_bytes()) {
+                        break;
+                    }
+                }
+            }),
+        ];
+
+        Self {
+            tx,
+            thread_handles,
+            phantom: marker::PhantomData,
+        }
+    }
+
+    fn send_message(&self, message: String) {
+        if let Ok(tx) = self.tx.lock() {
+            (*tx).send(message).expect("Server connection closed");
+        }
     }
 }
