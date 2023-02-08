@@ -61,10 +61,13 @@ pub extern "C" fn start_client(
                     println!("Received: {:?}", packet);
 
                     // Enumerate these
+                    let message_update: String = "MESSAGE".into();
                     let player_update: String = "PLAYER UPDATE".into();
                     let connection_end: String = "END CONNECTION".into();
 
-                    if packet.header == player_update {
+                    if packet.header == message_update {
+                        println!("Message from other Player: {}", packet.data);
+                    } else if packet.header == player_update {
                         println!("Received Player Update: {}", packet.data);
 
                         let fresh_player_data: Player =
