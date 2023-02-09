@@ -5,10 +5,10 @@ use std::{
     fmt,
     io::{BufRead, BufReader, BufWriter, Write},
     marker,
-    net::TcpStream,
+    net::{TcpStream, SocketAddr},
     sync::{mpsc, Arc, Mutex},
     thread,
-    time::Duration,
+    time::Duration, str::FromStr,
 };
 
 use crate::Player;
@@ -51,64 +51,76 @@ pub extern "C" fn start_client(
     };
     let send_data_func_mut = Mutex::new(send_data_func);
 
-    match TcpStream::connect(server_string) {
-        Ok(tcp_stream) => {
-            thread::scope(|scope| {
-                let mut game_has_ended = false;
+    let server_addr: SocketAddr = {
+        match server_string.parse() {
+            Ok(addr) => addr,
+            Err(_) => {
+                eprintln!("Invalid Server Address");
+                return false;
+            }
+        }
+    };
 
-                // Make this return a result that indicates whether the packet was malformed
-                let on_message_callback = |packet: &Packet| {
-                    println!("Received: {:?}", packet);
+    let tcp_stream = {
+        match TcpStream::connect_timeout(&server_addr, Duration::from_secs(3)) {
+            Ok(tcp_stream) => tcp_stream,
+            Err(_) => {
+                eprintln!("Failed to connect");
+                return false;
+            }
+        }
+    };
 
-                    match packet {
-                        Packet::Message(message) => {
-                            println!("Message from other Player: {}", message);
-                        }
-                        Packet::Player(fresh_player_data) => {
-                            println!("Received Player Update: {:?}", fresh_player_data);
+    thread::scope(|scope| {
+        let mut game_has_ended = false;
 
-                            if let Ok(send_data_func_ptr) = send_data_func_mut.lock() {
-                                // unsafe {
-                                //     std::mem::transmute::<*const (), fn(Player) -> Player>(
-                                //         **send_data_func_ptr,
-                                //     )(*fresh_player_data);
-                                // }
-                            }
-                        }
-                    }
-                    ()
-                };
+        // Make this return a result that indicates whether the packet was malformed
+        let on_message_callback = |packet: &Packet| {
+            println!("Received: {:?}", packet);
 
-                let server_connection = Connection::new(tcp_stream, scope, on_message_callback);
-
-                server_connection.send_message(Packet::Message("EST CONNECTION\n".into()));
-
-                while !game_has_ended {
-                    // Polling Player Data from game and sending it
-
-                    let player_data: Player;
-                    unsafe {
-                        // calling a C function that should give us new player data
-                        // this function should be turned into a function that returns any data really, stating what it is
-                        player_data =
-                            std::mem::transmute::<*const (), fn() -> Player>(get_data_func_ptr)();
-                    }
-
-                    let send_data = Packet::Player(player_data);
-                    server_connection.send_message(send_data);
-
-                    // chang this to poll c++ every 0.1s
-                    thread::sleep(Duration::from_secs(5));
+            match packet {
+                Packet::Message(message) => {
+                    println!("Message from Server: {}", message);
                 }
+                Packet::Player(fresh_player_data) => {
+                    println!("Received Player Update: {:?}", fresh_player_data);
 
-                // server connection threads will be joined here
-            });
+                    if let Ok(send_data_func_ptr) = send_data_func_mut.lock() {
+                        // unsafe {
+                        //     std::mem::transmute::<*const (), fn(Player) -> Player>(
+                        //         **send_data_func_ptr,
+                        //     )(*fresh_player_data);
+                        // }
+                    }
+                }
+            }
+            ()
+        };
 
-            return true;
+        let server_connection = Connection::new(tcp_stream, scope, on_message_callback);
+
+        server_connection.send_message(Packet::Message("EST CONNECTION\n".into()));
+
+        while !game_has_ended {
+            // Polling Player Data from game and sending it
+
+            let player_data: Player;
+            unsafe {
+                // calling a C function that should give us new player data
+                // this function should be turned into a function that returns any data really, stating what it is
+                player_data =
+                    std::mem::transmute::<*const (), fn() -> Player>(get_data_func_ptr)();
+            }
+
+            let send_data = Packet::Player(player_data);
+            server_connection.send_message(send_data);
+
+            // chang this to poll c++ every 0.1s
+            thread::sleep(Duration::from_secs(5));
         }
-        Err(e) => {
-            eprint!("Failed to connect: {}", e);
-            return false;
-        }
-    }
+
+        // server connection threads will be joined here
+    });
+
+    return true;
 }
