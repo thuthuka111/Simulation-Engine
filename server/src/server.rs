@@ -50,26 +50,13 @@ fn run_game_instance(p1_stream: TcpStream, p2_stream: TcpStream) {
         let p2_conn = Connection::new(p2_stream, scope, p2_on_packet);
 
         loop {
-            let message = Message {
-                message: "hello cunt 1".into(),
-            };
-            let message_for_clients = Packet {
-                header: "MESSAGE".into(),
-                data: serde_json::to_string(&message).expect("Malformed Message Data"),
-            };
-
+            let message_for_clients = Packet::Message("hello dawg 1".into());
             p1_conn.send_message(message_for_clients);
 
-            let message = Message {
-                message: "hello cunt 2".into(),
-            };
-            let message_for_clients = Packet {
-                header: "MESSAGE".into(),
-                data: serde_json::to_string(&message).expect("Malformed Message Data"),
-            };
+            let message_for_clients = Packet::Message("hello dawg 2".into());
+            p2_conn.send_message(message_for_clients);
 
             println!("Sent both clients a message");
-            p2_conn.send_message(message_for_clients);
 
             thread::sleep(Duration::from_secs(2));
         }

@@ -39,9 +39,9 @@ use std::{
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Packet {
-    header: String,
-    data: String,
+pub enum Packet {
+    Message(String),
+    Player(Player),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

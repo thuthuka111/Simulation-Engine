@@ -60,38 +60,28 @@ pub extern "C" fn start_client(
                 let on_message_callback = |packet: &Packet| {
                     println!("Received: {:?}", packet);
 
-                    // Enumerate these
-                    let message_update: String = "MESSAGE".into();
-                    let player_update: String = "PLAYER UPDATE".into();
-                    let connection_end: String = "END CONNECTION".into();
+                    match packet {
+                        Packet::Message(message) => {
+                            println!("Message from other Player: {}", message);
+                        }
+                        Packet::Player(fresh_player_data) => {
+                            println!("Received Player Update: {:?}", fresh_player_data);
 
-                    if packet.header == message_update {
-                        println!("Message from other Player: {}", packet.data);
-                    } else if packet.header == player_update {
-                        println!("Received Player Update: {}", packet.data);
-
-                        let fresh_player_data: Player =
-                            serde_json::from_str(&packet.data).expect("Malformed Player Data");
-
-                        if let Ok(send_data_func_ptr) = send_data_func_mut.lock() {
-                            unsafe {
-                                std::mem::transmute::<*const (), fn(Player) -> Player>(
-                                    **send_data_func_ptr,
-                                )(fresh_player_data);
+                            if let Ok(send_data_func_ptr) = send_data_func_mut.lock() {
+                                // unsafe {
+                                //     std::mem::transmute::<*const (), fn(Player) -> Player>(
+                                //         **send_data_func_ptr,
+                                //     )(*fresh_player_data);
+                                // }
                             }
                         }
-                    } else if packet.header == connection_end {
-                        todo!("implement Result<(), Err> for this maybe");
                     }
                     ()
                 };
 
                 let server_connection = Connection::new(tcp_stream, scope, on_message_callback);
 
-                server_connection.send_message(Packet {
-                    header: "EST CONNECTION\n".into(),
-                    data: "".into(),
-                });
+                server_connection.send_message(Packet::Message("EST CONNECTION\n".into()));
 
                 while !game_has_ended {
                     // Polling Player Data from game and sending it
@@ -103,11 +93,8 @@ pub extern "C" fn start_client(
                         player_data =
                             std::mem::transmute::<*const (), fn() -> Player>(get_data_func_ptr)();
                     }
-                    let send_data = Packet {
-                        header: "PLAYER UPDATE".into(),
-                        data: serde_json::to_string(&player_data).expect("Malformed Player Data"),
-                    };
 
+                    let send_data = Packet::Player(player_data);
                     server_connection.send_message(send_data);
 
                     // chang this to poll c++ every 0.1s
