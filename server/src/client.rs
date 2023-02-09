@@ -1,14 +1,14 @@
-use crate::{serde_json, Connection, Packet};
+use crate::{Connection, Packet};
 
 use std::{
     error::Error,
+    ffi::CStr,
     fmt,
-    io::{BufRead, BufReader, BufWriter, Write},
-    marker,
-    net::{TcpStream, SocketAddr},
-    sync::{mpsc, Arc, Mutex},
+    net::{SocketAddr, TcpStream},
+    os::raw::c_char,
+    sync::Mutex,
     thread,
-    time::Duration, str::FromStr,
+    time::Duration,
 };
 
 use crate::Player;
@@ -41,7 +41,7 @@ unsafe impl Send for ForeignFunc {}
 // have c++ share 2 functions, 1 for sending data, 1 for receiving it (by atomically changing a single ref
 #[no_mangle]
 pub extern "C" fn start_client(
-    server_string: String, // Change this to be FFI safe
+    server_string: *const c_char, // Change this to be FFI safe
     send_data_func: unsafe extern "C" fn(Player),
     get_data_func: unsafe extern "C" fn() -> Player, // Could be a reference
 ) -> bool {
@@ -50,6 +50,21 @@ pub extern "C" fn start_client(
         func_ptr: send_data_func as *const (),
     };
     let send_data_func_mut = Mutex::new(send_data_func);
+
+    let server_string = {
+        if server_string.is_null() {
+            eprintln!("Server String is null");
+            return false;
+        }
+        let s = unsafe { CStr::from_ptr(server_string) };
+        match s.to_str() {
+            Ok(s) => s,
+            Err(_) => {
+                eprintln!("Server String Not Valid UTF8 String");
+                return false;
+            }
+        }
+    };
 
     let server_addr: SocketAddr = {
         match server_string.parse() {
@@ -108,8 +123,7 @@ pub extern "C" fn start_client(
             unsafe {
                 // calling a C function that should give us new player data
                 // this function should be turned into a function that returns any data really, stating what it is
-                player_data =
-                    std::mem::transmute::<*const (), fn() -> Player>(get_data_func_ptr)();
+                player_data = std::mem::transmute::<*const (), fn() -> Player>(get_data_func_ptr)();
             }
 
             let send_data = Packet::Player(player_data);
